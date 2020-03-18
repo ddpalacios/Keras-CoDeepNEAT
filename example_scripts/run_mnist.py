@@ -11,16 +11,24 @@ from sklearn.cluster import KMeans
 from sklearn.neighbors import NearestCentroid
 from sklearn.preprocessing import scale
 from keras import backend as K
-from keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from keras.callbacks import EarlyStopping, ModelCheckpoint, CSVLogger
 from keras import regularizers
+import imp
+from keras.datasets import mnist
+kerascodeepneat = imp.load_source("kerascodeepneat", "/home/daniel/github/Keras-CoDeepNEAT/base/kerascodeepneat.py")
 
-kerascodeepneat = imp.load_source("kerascodeepneat", "./base/kerascodeepneat.py")
+def run_mnist_full(generations, 
+                  training_epochs, 
+                  population_size, 
+                  blueprint_population_size, 
+                  module_population_size, 
+                  n_blueprint_species, 
+                  n_module_species, 
+                  final_model_training_epochs):
+   
 
-def run_mnist_full(generations, training_epochs, population_size, blueprint_population_size, module_population_size, n_blueprint_species, n_module_species, final_model_training_epochs):
-    from keras.datasets import mnist
-
-    #Set parameter tables
+    # Set parameter tables
     global_configs = {
         "module_range" : ([1, 3], 'int'),
         "component_range" : ([1, 3], 'int')
@@ -53,17 +61,19 @@ def run_mnist_full(generations, training_epochs, population_size, blueprint_popu
     possible_complementary_outputs = {
         "dense": (keras.layers.Dense, {"units": ([10,10], 'int'), "activation": (["softmax"], 'list')})
     }
+    print("setup parameter data")
 
     
-    # The data, split between train and test sets:
+    # # The data, split between train and test sets:
     (x_train, y_train), (x_test, y_test) = mnist.load_data()
     print('x_train shape:', x_train.shape)
     print(x_train.shape[0], 'train samples')
     print(x_test.shape[0], 'test samples')
+    print("Loaded mnist data")
 
     num_classes = 10
 
-    # Convert class vectors to binary class matrices.
+    # # Convert class vectors to binary class matrices.
     y_train = keras.utils.to_categorical(y_train, num_classes)
     y_test = keras.utils.to_categorical(y_test, num_classes)
 
@@ -77,15 +87,16 @@ def run_mnist_full(generations, training_epochs, population_size, blueprint_popu
     #training
     batch_size = 128
 
-    #data augmentation
+    # #data augmentation
     datagen = ImageDataGenerator(
         rotation_range=15,
         width_shift_range=0.1,
         height_shift_range=0.1,
         horizontal_flip=True,
         )
+    print("Normalized and augmeneted data")
     datagen.fit(x_train)
-
+    print("Fitted data")
     my_dataset = kerascodeepneat.Datasets(training=[x_train, y_train], test=[x_test, y_test])
     my_dataset.SAMPLE_SIZE = 10000
     my_dataset.TEST_SAMPLE_SIZE = 1000
@@ -99,7 +110,7 @@ def run_mnist_full(generations, training_epochs, population_size, blueprint_popu
 
     compiler = {"loss":"categorical_crossentropy", "optimizer":"keras.optimizers.Adam(lr=0.005)", "metrics":["accuracy"]}
 
-    # Set configurations for full training session (final training)
+    # # Set configurations for full training session (final training)
     es = EarlyStopping(monitor='val_acc', mode='auto', verbose=1, patience=15)
     mc = ModelCheckpoint('best_model_checkpoint.h5', monitor='val_accuracy', mode='auto', verbose=1, save_best_only=True)
     csv_logger = CSVLogger('training.csv')
@@ -114,7 +125,7 @@ def run_mnist_full(generations, training_epochs, population_size, blueprint_popu
     improved_dataset.custom_fit_args = custom_fit_args
     my_dataset.custom_fit_args = None
 
-    # Initiate population
+    # # Initiate population
     population = kerascodeepneat.Population(my_dataset, input_shape=x_train.shape[1:], population_size=population_size, compiler=compiler)
     
     # Start with random modules
@@ -155,7 +166,7 @@ def run_mnist_full(generations, training_epochs, population_size, blueprint_popu
         best_model = population.return_best_individual()
         print(f"Best fitting model chosen for retraining: {best_model.name}")
         population.train_full_model(best_model, final_model_training_epochs, validation_split, custom_fit_args)
-  
+
 if __name__ == "__main__":
 
     generations = 2
