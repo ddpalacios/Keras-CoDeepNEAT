@@ -4,25 +4,6 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 
 class Setup:
-    def __init__(self,generations=2, 
-                  training_epochs=2, 
-                  population_size=1, 
-                  blueprint_population_size=10, 
-                  module_population_size=30, 
-                  n_blueprint_species=3, 
-                  n_module_species=3):
-
-
-        self.generations = generations
-        self.training_epochs = training_epochs
-        self.population_size = population_size
-        self.blueprint_population_size = blueprint_population_size
-        self.module_population_size = module_population_size
-        self.n_blueprint_species = n_blueprint_species
-        self.n_module_species = n_module_species
-
-
-
 
     def dataset(self, data):
          # # The data, split between train and test sets:

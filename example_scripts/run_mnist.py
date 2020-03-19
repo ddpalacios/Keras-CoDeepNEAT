@@ -8,8 +8,9 @@ from enum import auto
 from keras.callbacks import EarlyStopping, ModelCheckpoint, CSVLogger
 from keras import regularizers
 import imp
+from time import sleep
 from keras.datasets import mnist
-kerascodeepneat = imp.load_source("kerascodeepneat", "/home/daniel/github/Keras-CoDeepNEAT/base/kerascodeepneat.py")
+kerascodeepneat = imp.load_source("kerascodeepneat", "/Users/danielpalacios/github/Keras-CoDeepNEAT/base/kerascodeepneat.py")
 
 
 def Log_Progress(filename='execution.log' ):
@@ -45,13 +46,7 @@ if __name__ == "__main__":
     create_dir("models/")
     create_dir("images/")
 
-    setup = Setup(generations=2, 
-                                training_epochs=2, 
-                                population_size=1, 
-                                blueprint_population_size=10, 
-                                module_population_size=30, 
-                                n_blueprint_species=3,
-                                n_module_species=3)
+    setup = Setup()
 
 
     x_train, y_train, x_test, y_test, validation_split, batch_size, datagen = setup.dataset(mnist.load_data())
@@ -88,8 +83,10 @@ if __name__ == "__main__":
 
     population = kerascodeepneat.Population(my_dataset, input_shape=x_train.shape[1:], population_size=population_size, compiler=compiler)
     create = Create_Population(population)
-
+    print("Creating Random Modules")
     create.modules(module_population_size, n_module_species)
+    print("\nCreating Random BluePrints with parameter table")
+    sleep(5)
     create.blueprints(blueprint_population_size, n_blueprint_species)
 
     iteration = population.iterate_generations(generations=generations,
