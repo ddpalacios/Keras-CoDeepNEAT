@@ -112,12 +112,12 @@ if __name__ == "__main__":
     print("Using data augmentation.")
 
     try:
-        print(f"Best fitting model chosen for retraining: {best_model.name}")
+        print("Best fitting model chosen for retraining: {best_model.name}")
         population.train_full_model(best_model, final_model_training_epochs, validation_split, custom_fit_args)
     except:
         population.individuals.remove(best_model)
         best_model = population.return_best_individual()
-        print(f"Best fitting model chosen for retraining: {best_model.name}")
+        print("Best fitting model chosen for retraining: {best_model.name}")
         population.train_full_model(best_model, final_model_training_epochs, validation_split, custom_fit_args)
 
 
