@@ -1,5 +1,6 @@
 import sys
 sys.path.append("..")
+import numpy as np
 import keras, logging, random, pydot, copy, uuid, os, csv, json
 from create_population import Create_Population
 from Setup_ import Setup
@@ -11,6 +12,17 @@ import imp
 from time import sleep
 from keras.datasets import mnist
 kerascodeepneat = imp.load_source("kerascodeepneat", "/Users/danielpalacios/github/Keras-CoDeepNEAT/base/kerascodeepneat.py")
+
+class load_file:
+    def __init__(self, file):
+        self.file = file
+    
+    def get_data(self):
+        hal = np.load(self.file)
+        X_train, y_train, X_test, y_test,X_val, y_val = [hal[f] for f in hal.files]
+        return X_train, y_train, X_test, y_test,X_val, y_val
+
+
 
 
 def Log_Progress(filename='execution.log' ):
@@ -36,20 +48,22 @@ if __name__ == "__main__":
 
     generations = 2
     training_epochs = 2
-    final_model_training_epochs = 2
+    final_model_training_epochs = 10
     population_size = 1
-    blueprint_population_size = 10
-    module_population_size = 30
+    blueprint_population_size = 3
+    module_population_size = 3
     n_blueprint_species = 3
     n_module_species = 3
 
     create_dir("models/")
     create_dir("images/")
+    df = load_file('halloween_classes.npz')
+    X_train, y_train, X_test, y_test,X_val, y_val  = df.get_data()
 
     setup = Setup()
 
 
-    x_train, y_train, x_test, y_test, validation_split, batch_size, datagen = setup.dataset(mnist.load_data())
+    x_train, y_train, x_test, y_test, validation_split, batch_size, datagen = setup.dataset(df.get_data())
     compiler = setup.compiler_(loss= "categorical_crossentropy", optimizer= "keras.optimizers.Adam", lr=0.005, metrics = "accuracy")
 
 
@@ -67,26 +81,26 @@ if __name__ == "__main__":
     csv_logger = CSVLogger('training.csv')
 
 
-    custom_fit_args = {"generator": datagen.flow(x_train, y_train, 
+    custom_fit_args = {"generator": datagen.flow(x_train, y_train,
                         batch_size=batch_size),
                         "steps_per_epoch": x_train.shape[0] // batch_size,
                         "epochs": training_epochs,
                         "verbose": 1,
                         "validation_data": (x_test,y_test),
                         "callbacks": [es, csv_logger]
-}       
-
+}
+#
     improved_dataset = kerascodeepneat.Datasets(training=[x_train, y_train], test=[x_test, y_test])
     improved_dataset.custom_fit_args = custom_fit_args
     my_dataset.custom_fit_args = None
-
-
+#
+#
     population = kerascodeepneat.Population(my_dataset, input_shape=x_train.shape[1:], population_size=population_size, compiler=compiler)
     create = Create_Population(population)
     print("Creating Random Modules")
     create.modules(module_population_size, n_module_species)
     print("\nCreating Random BluePrints with parameter table")
-    sleep(5)
+#    sleep(5)
     create.blueprints(blueprint_population_size, n_blueprint_species)
 
     iteration = population.iterate_generations(generations=generations,
@@ -98,7 +112,7 @@ if __name__ == "__main__":
                                                 possible_components=create.possible_components,
                                                 possible_complementary_components=create.possible_complementary_components)
 
-
+#
     print("Best fitting: (Individual name, Blueprint mark, Scores[test loss, test acc], History).\n", (iteration))
 
      # # Return the best model
